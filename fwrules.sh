@@ -74,3 +74,10 @@ iptables -A FORWARD -p tcp -m recent --name portscan --set -m limit -j LOG --log
 iptables -A FORWARD -p tcp -m recent --name portscan --set -j DROP
 
 
+#Prevent SSH brute-force attacks
+iptables -N LOGDROP
+iptables -A LOGDROP -j LOG --log-prefix "ssh attack:"
+iptables -A LOGDROP -j DROP
+iptables -I INPUT -p tcp --dport 22 -i ens33 -m state --state NEW -m recent --set
+iptables -I INPUT -p tcp --dport 22 -i ens33 -m state --state NEW -m recent  --update --seconds 60 --hitcount 4 -j LOGDROP
+

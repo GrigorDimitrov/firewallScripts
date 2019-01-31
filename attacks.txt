@@ -1,0 +1,1 @@
+medusa -u grigorz -P pswlist.txt -M ssh -t 5 -h 192.168.182.130
