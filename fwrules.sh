@@ -34,7 +34,7 @@ iptables -A INPUT -p icmp -m limit --limit 1/s --limit-burst 1 -j LOG --log-pref
 #iptables -A INPUT -i ens33 -p icmp --icmp-type 8 -d $SERVER_IP -j ACCEPT
 
 #Limiting the incoming icmp ping request:
-iptables -A INPUT -p icmp -m limit --limit  1/s --limit-burst 1 -j ACCEPT
+iptables -A INPUT -p icmp --icmp-type echo-request -m limit --limit 1/s --limit-burst 5 -j ACCEPT
 
 #Prevent SYN flood attack
 iptables -A INPUT -p tcp --syn -m limit --limit 1/s --limit-burst 3 -j ACCEPT
