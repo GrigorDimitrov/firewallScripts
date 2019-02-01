@@ -31,7 +31,7 @@ iptables -A INPUT -i ens33 -p tcp -m tcp --dport 22 -s $ADMIN_IP -d $SERVER_IP -
 iptables -A INPUT -p icmp -m limit --limit 1/s --limit-burst 1 -j LOG --log-prefix PING-DROP:
 
 #Allow icmp echo requests
-iptables -A INPUT -i ens33 -p icmp --icmp-type 8 -d $SERVER_IP -j ACCEPT
+#iptables -A INPUT -i ens33 -p icmp --icmp-type 8 -d $SERVER_IP -j ACCEPT
 
 #Limiting the incoming icmp ping request:
 iptables -A INPUT -p icmp -m limit --limit  1/s --limit-burst 1 -j ACCEPT
