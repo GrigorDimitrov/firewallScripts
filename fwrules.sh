@@ -67,6 +67,10 @@ iptables -A OUTPUT -m state --state INVALID -j DROP
 # flooding of RST packets, smurf attack Rejection
 iptables -A INPUT -p tcp -m tcp --tcp-flags RST RST -m limit --limit 2/second --limit-burst 2 -j ACCEPT
 
+#Prevent SYN flood attack
+#iptables -A INPUT -p tcp --syn -m limit --limit 1/s --limit-burst 1 -j LOG --log-prefix SYN-ABUSE-DROPPED:
+#iptables -A INPUT -p tcp --syn -m limit --limit 1/s --limit-burst 1 -j ACCEPT
+
 # These rules add scanners to the portscan list, and log the attempt.
 iptables -A INPUT -p tcp -m recent --name portscan --set -m limit -j LOG --log-prefix "portscan:"
 iptables -A INPUT -p tcp -m recent --name portscan --set -j DROP
@@ -74,21 +78,13 @@ iptables -A INPUT -p tcp -m recent --name portscan --set -j DROP
 iptables -A FORWARD -p tcp -m recent --name portscan --set -m limit -j LOG --log-prefix "portscan:"
 iptables -A FORWARD -p tcp -m recent --name portscan --set -j DROP
 
-#Prevent SYN flood attack
-#iptables -A INPUT -p tcp --syn -m limit --limit 1/s --limit-burst 1 -j LOG --log-prefix SYN-ABUSE-DROPPED:
-#iptables -A INPUT -p tcp --syn -m limit --limit 1/s --limit-burst 1 -j ACCEPT
-
-iptables -N DROPSYN
-iptables -A DROPSYN -m limit -j LOG --log-prefix "syn attack:"
-iptables -A DROPSYN -j DROP
-iptables -I INPUT -p tcp --syn -i enp0s3 -m state --state NEW -m recent --set
-iptables -I INPUT -p tcp --syn -i enp0s3 -m state --state NEW -m recent  --update --seconds 2 --hitcount 4 -j DROPSYN
-
 
 #Prevent SSH brute-force attacks
 iptables -N LOGDROP
 iptables -A LOGDROP -j LOG --log-prefix "ssh attack:"
 iptables -A LOGDROP -j DROP
-iptables -I INPUT -p tcp --dport 22 -i enp0s3 -m state --state NEW -m recent --set
-iptables -I INPUT -p tcp --dport 22 -i enp0s3 -m state --state NEW -m recent  --update --seconds 60 --hitcount 4 -j LOGDROP
+iptables -I INPUT -p tcp --dport 22 -i ens33 -m state --state NEW -m recent --set
+iptables -I INPUT -p tcp --dport 22 -i ens33 -m state --state NEW -m recent  --update --seconds 60 --hitcount 4 -j LOGDROP
+
+
 
