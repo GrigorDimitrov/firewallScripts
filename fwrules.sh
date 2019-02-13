@@ -1,7 +1,7 @@
 #!/bin/sh
 
-SERVER_IP="192.168.182.130"
-ADMIN_IP="192.168.182.128"
+SERVER_IP="192.168.176.135"
+ADMIN_IP="192.168.176.138"
 
 iptables --flush
 
@@ -20,21 +20,21 @@ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 #Allow HTTP and HTTPS traffic
-iptables -A INPUT -i enp0s3 -p tcp -m tcp --dport 80 -d $SERVER_IP -j ACCEPT
-iptables -A INPUT -i enp0s3 -p tcp -m tcp --dport 443 -d $SERVER_IP -j ACCEPT
+iptables -A INPUT -i ens33 -p tcp -m tcp --dport 80 -d $SERVER_IP -j ACCEPT
+iptables -A INPUT -i ens33 -p tcp -m tcp --dport 443 -d $SERVER_IP -j ACCEPT
 
 #Allow SSH and FTP access for ADMIN_IP
-iptables -A INPUT -i enp0s3 -p tcp -m tcp --dport 21 -s $ADMIN_IP -d $SERVER_IP -j ACCEPT
-iptables -A INPUT -i enp0s3 -p tcp -m tcp --dport 22 -s $ADMIN_IP -d $SERVER_IP -j ACCEPT
+iptables -A INPUT -i ens33 -p tcp -m tcp --dport 21 -s $ADMIN_IP -d $SERVER_IP -j ACCEPT
+iptables -A INPUT -i ens33 -p tcp -m tcp --dport 22 -s $ADMIN_IP -d $SERVER_IP -j ACCEPT
 
 #Logging abuse
 iptables -A INPUT -p icmp -m limit --limit 1/s --limit-burst 1 -j LOG --log-prefix PING-DROP:
 
 #Allow admin icmp echo requests
-iptables -A INPUT -i enp0s3 -p icmp -s $ADMIN_IP --icmp-type 8 -j ACCEPT
+iptables -A INPUT -i ens33 -p icmp -s $ADMIN_IP --icmp-type 8 -j ACCEPT
 
 #Disallow icmp echo requests
-iptables -A INPUT -i enp0s3 -p icmp --icmp-type 8 -j DROP
+iptables -A INPUT -i ens33 -p icmp --icmp-type 8 -j DROP
 
 #Limiting the incoming icmp request:
 iptables -A INPUT -p icmp -m limit --limit  1/s --limit-burst 1 -j ACCEPT
@@ -70,6 +70,12 @@ iptables -A INPUT -p tcp -m tcp --tcp-flags RST RST -m limit --limit 2/second --
 #Prevent SYN flood attack
 #iptables -A INPUT -p tcp --syn -m limit --limit 1/s --limit-burst 1 -j LOG --log-prefix SYN-ABUSE-DROPPED:
 #iptables -A INPUT -p tcp --syn -m limit --limit 1/s --limit-burst 1 -j ACCEPT
+
+iptables -N DROPSYN 
+iptables -A DROPSYN -m limit -j LOG --log-prefix "syn attack:" 
+iptables -A DROPSYN -j DROP 
+iptables -I INPUT -p tcp --syn -i ens33 -m state --state NEW -m recent --set 
+iptables -I INPUT -p tcp --syn -i ens33 -m state --state NEW -m recent  --update --seconds 2 --hitcount 4 -j DROPSYN
 
 # These rules add scanners to the portscan list, and log the attempt.
 iptables -A INPUT -p tcp -m recent --name portscan --set -m limit -j LOG --log-prefix "portscan:"

